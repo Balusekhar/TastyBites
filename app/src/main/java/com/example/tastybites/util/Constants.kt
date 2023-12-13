@@ -1,4 +1,4 @@
-package com.example.tastybites
+package com.example.tastybites.util
 
 class Constants {
 

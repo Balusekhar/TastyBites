@@ -1,4 +1,4 @@
-package com.example.tastybites
+package com.example.tastybites.data.network
 
 import com.example.tastybites.models.FoodRecipe
 import retrofit2.Response
