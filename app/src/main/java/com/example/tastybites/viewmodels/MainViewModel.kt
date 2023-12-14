@@ -10,32 +10,34 @@ import androidx.lifecycle.viewModelScope
 import com.example.tastybites.data.Repository
 import com.example.tastybites.models.FoodRecipe
 import com.example.tastybites.util.NetworkResult
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import javax.inject.Inject
 
+@HiltViewModel
 class MainViewModel @Inject constructor(
     private val repository: Repository,
     application: Application
 ) : AndroidViewModel(application) {
 
-    var recipeResponse : MutableLiveData<NetworkResult<FoodRecipe>> = MutableLiveData()
+    var recipesResponse : MutableLiveData<NetworkResult<FoodRecipe>> = MutableLiveData()
 
-    fun getRecipe(queries : Map<String,String>) = viewModelScope.launch {
+    fun getRecipes(queries : Map<String,String>) = viewModelScope.launch {
         getRecipeSafeCall(queries)
     }
 
     private suspend fun getRecipeSafeCall(queries: Map<String, String>) {
-        recipeResponse.value = NetworkResult.Loading()
+        recipesResponse.value = NetworkResult.Loading()
         if(isInternetConnected()){
             try {
                 val response = repository.remote.getRecipes(queries)
-                recipeResponse.value = handleFoodRecipesResponse(response)
+                recipesResponse.value = handleFoodRecipesResponse(response)
             }catch (e:Exception){
-                recipeResponse.value = NetworkResult.Error("No Recipes Found")
+                recipesResponse.value = NetworkResult.Error("No Recipes Found")
             }
         }else{
-            recipeResponse.value = NetworkResult.Error("No Internet")
+            recipesResponse.value = NetworkResult.Error("No Internet")
         }
     }
 
