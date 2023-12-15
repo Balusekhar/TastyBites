@@ -2,6 +2,7 @@ package com.example.tastybites.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import com.example.tastybites.util.Constants
 import com.example.tastybites.util.Constants.Companion.API_KEY
 import com.example.tastybites.util.Constants.Companion.QUERY_ADD_RECIPE_INFORMATION
 import com.example.tastybites.util.Constants.Companion.QUERY_API_KEY
@@ -9,6 +10,7 @@ import com.example.tastybites.util.Constants.Companion.QUERY_DIET
 import com.example.tastybites.util.Constants.Companion.QUERY_FILL_INGREDIENTS
 import com.example.tastybites.util.Constants.Companion.QUERY_NUMBER
 import com.example.tastybites.util.Constants.Companion.QUERY_TYPE
+import dagger.hilt.android.lifecycle.HiltViewModel
 
 
 

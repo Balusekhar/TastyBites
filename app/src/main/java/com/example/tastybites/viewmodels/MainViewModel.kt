@@ -1,9 +1,10 @@
-package com.example.tastybites
+package com.example.tastybites.viewmodels
 
 import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -29,7 +30,7 @@ class MainViewModel @Inject constructor(
 
     private suspend fun getRecipeSafeCall(queries: Map<String, String>) {
         recipesResponse.value = NetworkResult.Loading()
-        if(isInternetConnected()){
+        if(hasInternetConnection()){
             try {
                 val response = repository.remote.getRecipes(queries)
                 recipesResponse.value = handleFoodRecipesResponse(response)
@@ -44,34 +45,44 @@ class MainViewModel @Inject constructor(
     private fun handleFoodRecipesResponse(response: Response<FoodRecipe>): NetworkResult<FoodRecipe>? {
         when{
             response.message().toString().contains("timeout") -> {
+                Toast.makeText(getApplication(), "timeout", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Error(message = "TimeOut")
             }
             response.code() == 402 -> {
+                Toast.makeText(getApplication(), "API Key limited", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Error(message = "API Key Limited")
             }
+            response.code() == 401 -> {
+                Toast.makeText(getApplication(), "You are not authorized. Check your API key.", Toast.LENGTH_SHORT).show()
+                return NetworkResult.Error("You are not authorized. Check your API key.")
+            }
             response.body()?.results.isNullOrEmpty() -> {
+                Toast.makeText(getApplication(), "Recipes Not Found", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Error(message = "Recipes Not Found")
             }
             response.isSuccessful -> {
                 val foodRecipe = response.body()
+                Toast.makeText(getApplication(), "Recipes Found", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Success(foodRecipe!!)
             }
             else ->{
+                Toast.makeText(getApplication(), "MY ERROR", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Error(response.message())
             }
         }
     }
 
-    fun isInternetConnected(): Boolean {
-        val connectivityManager =
-            getApplication<Application>().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-        // Check for network capabilities for the active network
-        val network = connectivityManager.activeNetwork ?: return false
-        val networkCapabilities =
-            connectivityManager.getNetworkCapabilities(network) ?: return false
-
-        // Check if the network has internet connectivity
-        return networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    private fun hasInternetConnection(): Boolean {
+        val connectivityManager = getApplication<Application>().getSystemService(
+            Context.CONNECTIVITY_SERVICE
+        ) as ConnectivityManager
+        val activeNetwork = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+        return when {
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+            else -> false
+        }
     }
 }

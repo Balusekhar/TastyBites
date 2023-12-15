@@ -4,10 +4,10 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.tastybites.databinding.RecipesRowLayoutBinding
 import com.example.tastybites.models.FoodRecipe
 import com.example.tastybites.models.Result
 import com.example.tastybites.util.RecipesDiffUtil
+import com.example.tastybites.databinding.RecipesRowLayoutBinding
 
 class RecipesAdapter : RecyclerView.Adapter<RecipesAdapter.MyViewHolder>() {
 
@@ -40,7 +40,7 @@ class RecipesAdapter : RecyclerView.Adapter<RecipesAdapter.MyViewHolder>() {
 
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         val currentRecipe =recipes[position]
-            holder.bind(currentRecipe)
+        holder.bind(currentRecipe)
     }
 
     fun setData(newData : FoodRecipe){
