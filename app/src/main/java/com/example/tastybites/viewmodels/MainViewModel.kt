@@ -4,14 +4,17 @@ import android.app.Application
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.tastybites.data.Repository
+import com.example.tastybites.data.database.RecipesEntity
 import com.example.tastybites.models.FoodRecipe
 import com.example.tastybites.util.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import javax.inject.Inject
@@ -22,6 +25,18 @@ class MainViewModel @Inject constructor(
     application: Application
 ) : AndroidViewModel(application) {
 
+    //Room
+    val readRecipes : LiveData<List<RecipesEntity>> = repository.local.readDatabase().asLiveData()
+
+    private fun insertRecipes(recipesEntity: RecipesEntity) =
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.local.insertRecipes(recipesEntity)
+        }
+
+
+
+
+    //Retrofit
     var recipesResponse : MutableLiveData<NetworkResult<FoodRecipe>> = MutableLiveData()
 
     fun getRecipes(queries : Map<String,String>) = viewModelScope.launch {
@@ -34,6 +49,12 @@ class MainViewModel @Inject constructor(
             try {
                 val response = repository.remote.getRecipes(queries)
                 recipesResponse.value = handleFoodRecipesResponse(response)
+
+                val foodRecipe = recipesResponse.value!!.data
+                if(foodRecipe != null) {
+                    offlineCacheRecipes(foodRecipe)
+                }
+
             }catch (e:Exception){
                 recipesResponse.value = NetworkResult.Error("No Recipes Found")
             }
@@ -42,31 +63,31 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    private fun offlineCacheRecipes(foodRecipe: FoodRecipe) {
+        val recipesEntity = RecipesEntity(foodRecipe)
+        insertRecipes(recipesEntity)
+    }
+
+
     private fun handleFoodRecipesResponse(response: Response<FoodRecipe>): NetworkResult<FoodRecipe>? {
         when{
             response.message().toString().contains("timeout") -> {
-                Toast.makeText(getApplication(), "timeout", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Error(message = "TimeOut")
             }
             response.code() == 402 -> {
-                Toast.makeText(getApplication(), "API Key limited", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Error(message = "API Key Limited")
             }
             response.code() == 401 -> {
-                Toast.makeText(getApplication(), "You are not authorized. Check your API key.", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Error("You are not authorized. Check your API key.")
             }
             response.body()?.results.isNullOrEmpty() -> {
-                Toast.makeText(getApplication(), "Recipes Not Found", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Error(message = "Recipes Not Found")
             }
             response.isSuccessful -> {
                 val foodRecipe = response.body()
-                Toast.makeText(getApplication(), "Recipes Found", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Success(foodRecipe!!)
             }
             else ->{
-                Toast.makeText(getApplication(), "MY ERROR", Toast.LENGTH_SHORT).show()
                 return NetworkResult.Error(response.message())
             }
         }

@@ -18,6 +18,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf(
+                    "room.schemaLocation" to "$projectDir/schemas",
+                    "room.incremental" to "true"
+                )
+            }
+        }
     }
 
     buildTypes {
@@ -71,6 +80,22 @@ dependencies {
 
     //coil
     implementation("io.coil-kt:coil:2.5.0")
+
+    //room
+    val room_version = "2.6.1"
+
+    implementation("androidx.room:room-runtime:$room_version")
+    annotationProcessor("androidx.room:room-compiler:$room_version")
+
+    //kapt -- room
+    kapt("androidx.room:room-compiler:$room_version")
+
+    //coroutines - room
+    implementation("androidx.room:room-ktx:$room_version")
+
+    //asLiveData
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+
 
 }
 
