@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("androidx.navigation.safeargs")
+    id("androidx.navigation.safeargs.kotlin")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
 }
@@ -95,6 +95,9 @@ dependencies {
 
     //asLiveData
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+
+    //Preference Datastore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
 
 }
